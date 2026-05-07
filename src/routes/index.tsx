@@ -62,7 +62,7 @@ function Game() {
       {screen === "levelSelect" && (
         <LevelSelect
           progress={progress}
-          onPick={(lv) => { setLevel(lv); go(lv >= 3 ? "reading" : lv === 2 ? "quiz" : "learn"); }}
+          onPick={(lv: number) => { setLevel(lv); go(lv >= 3 ? "reading" : lv === 2 ? "quiz" : "learn"); }}
           onBack={() => go("menu")}
         />
       )}
