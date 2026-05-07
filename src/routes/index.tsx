@@ -37,6 +37,7 @@ function Game() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [progress, setProgress] = useProgress();
   const [level, setLevel] = useState(1);
+  const [lastResult, setLastResult] = useState<{ score: number; correct: number; total: number } | null>(null);
 
   const go = (s: Screen) => setScreen(s);
 
@@ -100,8 +101,6 @@ function Game() {
       {screen === "progress" && <ProgressScreen progress={progress} onBack={() => go("menu")} />}
     </>
   );
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  function setLastResult(_: any) {} // placeholder, replaced via state below
 }
 
 // ---- Screens ----
