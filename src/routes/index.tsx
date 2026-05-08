@@ -212,26 +212,41 @@ function Splash({ onStart }: { onStart: () => void }) {
 
 function NameScreen({ initial, onContinue }: { initial: string; onContinue: (n: string) => void }) {
   const [n, setN] = useState(initial);
+  const [pw, setPw] = useState("");
   return (
     <Frame>
       <div className="flex flex-1 items-center justify-center">
         <Panel className="w-full max-w-xl p-10 text-center">
-          <h2 className="text-3xl font-bold text-foreground">SILIH NAMI PAMAÉN</h2>
-          <p className="mt-2 text-muted-foreground">Mangga lebetkeun nami anjeun</p>
+          <h2 className="text-3xl font-bold text-foreground">LEBETKEUN NAMI PAMAÉN</h2>
+          <p className="mt-2 text-muted-foreground">Mangga lebetkeun nami sareng kata sandi</p>
           <input
             value={n}
             onChange={(e) => setN(e.target.value)}
-            placeholder="Ketik nama anjeun"
+            placeholder="Ketik nami anjeun"
             className="mt-6 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 text-lg outline-none focus:border-primary"
           />
-          <Btn onClick={() => n.trim() && onContinue(n.trim())} className="mt-6 w-full text-lg">MULAI</Btn>
+          <input
+            type="password"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            placeholder="Ketik kata sandi"
+            className="mt-3 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 text-lg outline-none focus:border-primary"
+          />
+          <Btn
+            onClick={() => {
+              if (!n.trim()) { toast.error("Nami pamaén dibutuhkan"); return; }
+              if (pw.length < 3) { toast.error("Kata sandi minimal 3 karakter"); return; }
+              onContinue(n.trim());
+            }}
+            className="mt-6 w-full text-lg"
+          >MULAI</Btn>
         </Panel>
       </div>
     </Frame>
   );
 }
 
-function Menu({ progress, onLearn, onWriting, onProgress, onSettings, onExit }: any) {
+function Menu({ progress, onLearn, onWriting, onReading, onProgress, onSettings, onExit }: any) {
   return (
     <Frame>
       <div className="flex justify-between">
@@ -248,9 +263,10 @@ function Menu({ progress, onLearn, onWriting, onProgress, onSettings, onExit }: 
         <h1 className="text-7xl font-bold text-amber-100 drop-shadow-lg">SUNDA GAME</h1>
         <p className="mt-2 text-emerald-50">Sundanese Educational Game</p>
         <div className="mt-10 flex w-full max-w-sm flex-col gap-3">
-          <Btn onClick={onLearn} className="text-lg">Mulai Belajar</Btn>
-          <Btn onClick={onWriting} className="text-lg">Latihan Menulis</Btn>
-          <Btn onClick={onProgress} className="text-lg">Lihat Progres</Btn>
+          <Btn onClick={onLearn} className="text-lg"><BookOpen className="mr-2 inline h-5 w-5" />Mulai Belajar</Btn>
+          <Btn variant="soft" onClick={onWriting} className="text-lg">Latihan Menulis</Btn>
+          <Btn variant="soft" onClick={onReading} className="text-lg"><Volume2 className="mr-2 inline h-5 w-5" />Latihan Membaca</Btn>
+          <Btn variant="ghost" onClick={onProgress} className="text-lg">Lihat Progres</Btn>
           <Btn variant="ghost" className="text-lg" onClick={onSettings}>Pengaturan</Btn>
           <Btn variant="danger" onClick={onExit} className="text-lg">Keluar</Btn>
         </div>
