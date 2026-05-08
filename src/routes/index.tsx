@@ -441,18 +441,28 @@ function Writing({ onBack }: { onBack: () => void }) {
   );
 }
 
-function Reading({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
+function Reading({ onDone, onBack }: { onDone: (score: number, correct: number, total: number) => void; onBack: () => void }) {
   const [i, setI] = useState(0);
   const [ans, setAns] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const [score, setScore] = useState(0);
+  const [correct, setCorrect] = useState(0);
   const k = KATA[i];
   const check = () => {
     const ok = ans.trim().toLowerCase() === k.latin.toLowerCase();
-    setMsg(ok ? "Léres! Jawaban benar." : `Salah. Jawaban: ${k.latin}`);
+    if (ok) {
+      setScore((s) => s + 10);
+      setCorrect((c) => c + 1);
+      toast.success("Léres! Jawaban benar.");
+      setMsg("Léres! Jawaban benar.");
+    } else {
+      toast.error(`Salah. Jawaban: ${k.latin}`);
+      setMsg(`Salah. Jawaban: ${k.latin}`);
+    }
   };
   const next = () => {
     setAns(""); setMsg(null);
-    if (i + 1 >= KATA.length) onDone(); else setI(i + 1);
+    if (i + 1 >= KATA.length) onDone(score, correct, KATA.length); else setI(i + 1);
   };
   return (
     <Frame title="Membaca Kata">
