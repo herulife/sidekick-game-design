@@ -407,12 +407,14 @@ function Quiz({ level, onDone, onBack }: { level: number; onDone: (score: number
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-12 w-12" /></div>
               <h2 className="mt-4 text-5xl font-bold text-primary">LÉRES!</h2>
               <p className="mt-2 text-lg">Jawabanmu benar!</p>
+              <img src={sgHappy} alt="" className="mx-auto mt-3 h-44 w-auto" />
             </>
           ) : (
             <>
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-destructive text-destructive-foreground"><X className="h-12 w-12" /></div>
               <h2 className="mt-4 text-5xl font-bold text-destructive">SALAH!</h2>
               <p className="mt-2 text-lg">Jawaban yang benar adalah:</p>
+              <img src={sgConfused} alt="" className="mx-auto mt-3 h-44 w-auto" />
             </>
           )}
           <div className="mt-3 text-4xl font-bold">{feedback.answer}</div>
