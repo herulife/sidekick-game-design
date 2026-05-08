@@ -551,6 +551,13 @@ function Reading({ onDone, onBack }: { onDone: (score: number, correct: number, 
           <input value={ans} onChange={(e) => setAns(e.target.value)} placeholder="Ketik jawaban..." className="mt-2 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 outline-none focus:border-primary" />
         </div>
         {msg && <div className={`mt-3 font-semibold ${msg.startsWith("Léres") ? "text-primary" : "text-destructive"}`}>{msg}</div>}
+        {msg && (
+          <img
+            src={msg.startsWith("Léres") ? sgCheer : sgConfused}
+            alt=""
+            className="mx-auto mt-2 h-32 w-auto"
+          />
+        )}
         <div className="mt-4 flex justify-end gap-2">
           <Btn variant="ghost" onClick={onBack}>Menu</Btn>
           {msg ? <Btn onClick={next}>Selanjutnya</Btn> : <Btn onClick={check}>Cek Jawaban</Btn>}
@@ -563,6 +570,7 @@ function Reading({ onDone, onBack }: { onDone: (score: number, correct: number, 
 function Result({ score, correct, total, level, onAgain, onNext, onMenu }: any) {
   const stars = Math.round((correct / total) * 3);
   const label = stars === 3 ? "Hebat!" : stars === 2 ? "Cukup Baik!" : "Coba Lagi!";
+  const passed = correct / total >= 0.7;
   return (
     <Frame>
       <Panel className="mx-auto mt-12 w-full max-w-2xl p-8">
@@ -581,12 +589,31 @@ function Result({ score, correct, total, level, onAgain, onNext, onMenu }: any) 
             <Row k="Level" v={level} />
           </div>
         </div>
+        <div className={`mt-4 rounded-lg p-3 text-center text-sm font-semibold ${passed ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}>
+          {passed ? <><Trophy className="mr-1 inline h-4 w-4" />Skor memenuhi syarat untuk naik level!</> : "Skor belum cukup. Tetap di level ini, ulangi ya!"}
+        </div>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Btn onClick={onAgain}>Main Lagi</Btn>
-          <Btn variant="soft" onClick={onNext}>Lanjut Level</Btn>
+          <Btn variant="soft" onClick={onNext} disabled={!passed}>Lanjut Level</Btn>
           <Btn variant="ghost" onClick={onMenu}>Menu Utama</Btn>
         </div>
       </Panel>
+    </Frame>
+  );
+}
+
+function FinalCelebration({ onMenu }: { onMenu: () => void }) {
+  return (
+    <Frame title="Selesai">
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <PartyPopper className="h-12 w-12 text-amber-300 drop-shadow" />
+        <h1 className="mt-2 text-6xl font-bold text-amber-100 drop-shadow-lg">WILUJENG!</h1>
+        <p className="mt-3 max-w-md text-lg text-emerald-50 drop-shadow">
+          Kamu telah menyelesaikan permainan ini.
+        </p>
+        <img src={sgWave} alt="" className="my-6 h-64 w-auto rounded-2xl object-cover drop-shadow-xl" />
+        <Btn onClick={onMenu} className="px-10 text-lg"><Home className="mr-2 inline h-5 w-5" />Selesai</Btn>
+      </div>
     </Frame>
   );
 }
