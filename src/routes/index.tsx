@@ -5,7 +5,13 @@ import { Frame, Panel } from "@/game/Frame";
 import { AKSARA_DASAR, KATA, LEVELS, shuffle } from "@/game/data";
 import { speak, useProgress } from "@/game/store";
 import avatar from "@/assets/sunda-avatar.png";
-import { BookOpen, Music, Volume2, Heart, Star, Lock, RotateCcw, ChevronLeft, ChevronRight, Check, X, Trash2 } from "lucide-react";
+import sgGreet from "@/assets/sg-greet.jpg";
+import sgHappy from "@/assets/sg-happy.jpg";
+import sgConfused from "@/assets/sg-confused.jpg";
+import sgCheer from "@/assets/sg-cheer.jpg";
+import sgWave from "@/assets/sg-wave.jpg";
+import sgHero from "@/assets/sg-hero.jpg";
+import { BookOpen, Music, Volume2, Heart, Star, Lock, RotateCcw, ChevronLeft, ChevronRight, Check, X, Trash2, Home, Trophy, PartyPopper } from "lucide-react";
 
 export const Route = createFileRoute("/")({ component: Game });
 
@@ -19,6 +25,7 @@ type Screen =
   | "writing"
   | "reading"
   | "result"
+  | "finalCelebration"
   | "progress"
   | "settings";
 
@@ -57,6 +64,7 @@ function Game() {
           progress={progress}
           onLearn={() => go("levelSelect")}
           onWriting={() => go("writing")}
+          onReading={() => go("reading")}
           onProgress={() => go("progress")}
           onSettings={() => go("settings")}
           onExit={() => go("splash")}
@@ -122,12 +130,16 @@ function Game() {
           level={level}
           onAgain={() => go(level >= 3 ? "reading" : "quiz")}
           onNext={() => {
-            const nl = Math.min(4, level + 1);
+            if (level >= 4) { go("finalCelebration"); return; }
+            const nl = level + 1;
             setLevel(nl);
             go(nl >= 3 ? "reading" : "quiz");
           }}
           onMenu={() => go("menu")}
         />
+      )}
+      {screen === "finalCelebration" && (
+        <FinalCelebration onMenu={() => { setLevel(1); go("menu"); }} />
       )}
       {screen === "progress" && <ProgressScreen progress={progress} onBack={() => go("menu")} />}
       {screen === "settings" && (
@@ -164,7 +176,7 @@ function Splash({ onStart }: { onStart: () => void }) {
         <div className="mb-2 text-2xl font-medium text-emerald-50 drop-shadow">Wilujeng Sumping</div>
         <h1 className="text-7xl font-bold tracking-tight text-amber-100 drop-shadow-lg md:text-8xl">SUNDA GAME</h1>
         <p className="mt-3 text-lg text-emerald-50/90 drop-shadow">Sundanese Educational Game</p>
-        <img src={avatar} alt="" width={180} height={180} className="my-6 drop-shadow-xl" />
+        <img src={sgHero} alt="Karakter Sunda" className="my-4 h-64 w-auto rounded-2xl object-cover drop-shadow-xl" />
         <Btn onClick={onStart} className="px-12 text-xl">MULAI</Btn>
         <div className="mt-8 flex gap-3">
           <Btn variant="ghost" className="text-sm" onClick={() => setShowHelp(true)}>
@@ -200,26 +212,41 @@ function Splash({ onStart }: { onStart: () => void }) {
 
 function NameScreen({ initial, onContinue }: { initial: string; onContinue: (n: string) => void }) {
   const [n, setN] = useState(initial);
+  const [pw, setPw] = useState("");
   return (
     <Frame>
       <div className="flex flex-1 items-center justify-center">
         <Panel className="w-full max-w-xl p-10 text-center">
-          <h2 className="text-3xl font-bold text-foreground">SILIH NAMI PAMAÉN</h2>
-          <p className="mt-2 text-muted-foreground">Mangga lebetkeun nami anjeun</p>
+          <h2 className="text-3xl font-bold text-foreground">LEBETKEUN NAMI PAMAÉN</h2>
+          <p className="mt-2 text-muted-foreground">Mangga lebetkeun nami sareng kata sandi</p>
           <input
             value={n}
             onChange={(e) => setN(e.target.value)}
-            placeholder="Ketik nama anjeun"
+            placeholder="Ketik nami anjeun"
             className="mt-6 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 text-lg outline-none focus:border-primary"
           />
-          <Btn onClick={() => n.trim() && onContinue(n.trim())} className="mt-6 w-full text-lg">MULAI</Btn>
+          <input
+            type="password"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            placeholder="Ketik kata sandi"
+            className="mt-3 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 text-lg outline-none focus:border-primary"
+          />
+          <Btn
+            onClick={() => {
+              if (!n.trim()) { toast.error("Nami pamaén dibutuhkan"); return; }
+              if (pw.length < 3) { toast.error("Kata sandi minimal 3 karakter"); return; }
+              onContinue(n.trim());
+            }}
+            className="mt-6 w-full text-lg"
+          >MULAI</Btn>
         </Panel>
       </div>
     </Frame>
   );
 }
 
-function Menu({ progress, onLearn, onWriting, onProgress, onSettings, onExit }: any) {
+function Menu({ progress, onLearn, onWriting, onReading, onProgress, onSettings, onExit }: any) {
   return (
     <Frame>
       <div className="flex justify-between">
@@ -236,9 +263,10 @@ function Menu({ progress, onLearn, onWriting, onProgress, onSettings, onExit }: 
         <h1 className="text-7xl font-bold text-amber-100 drop-shadow-lg">SUNDA GAME</h1>
         <p className="mt-2 text-emerald-50">Sundanese Educational Game</p>
         <div className="mt-10 flex w-full max-w-sm flex-col gap-3">
-          <Btn onClick={onLearn} className="text-lg">Mulai Belajar</Btn>
-          <Btn onClick={onWriting} className="text-lg">Latihan Menulis</Btn>
-          <Btn onClick={onProgress} className="text-lg">Lihat Progres</Btn>
+          <Btn onClick={onLearn} className="text-lg"><BookOpen className="mr-2 inline h-5 w-5" />Mulai Belajar</Btn>
+          <Btn variant="soft" onClick={onWriting} className="text-lg">Latihan Menulis</Btn>
+          <Btn variant="soft" onClick={onReading} className="text-lg"><Volume2 className="mr-2 inline h-5 w-5" />Latihan Membaca</Btn>
+          <Btn variant="ghost" onClick={onProgress} className="text-lg">Lihat Progres</Btn>
           <Btn variant="ghost" className="text-lg" onClick={onSettings}>Pengaturan</Btn>
           <Btn variant="danger" onClick={onExit} className="text-lg">Keluar</Btn>
         </div>
@@ -379,12 +407,14 @@ function Quiz({ level, onDone, onBack }: { level: number; onDone: (score: number
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-12 w-12" /></div>
               <h2 className="mt-4 text-5xl font-bold text-primary">LÉRES!</h2>
               <p className="mt-2 text-lg">Jawabanmu benar!</p>
+              <img src={sgHappy} alt="" className="mx-auto mt-3 h-44 w-auto" />
             </>
           ) : (
             <>
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-destructive text-destructive-foreground"><X className="h-12 w-12" /></div>
               <h2 className="mt-4 text-5xl font-bold text-destructive">SALAH!</h2>
               <p className="mt-2 text-lg">Jawaban yang benar adalah:</p>
+              <img src={sgConfused} alt="" className="mx-auto mt-3 h-44 w-auto" />
             </>
           )}
           <div className="mt-3 text-4xl font-bold">{feedback.answer}</div>
@@ -521,6 +551,13 @@ function Reading({ onDone, onBack }: { onDone: (score: number, correct: number, 
           <input value={ans} onChange={(e) => setAns(e.target.value)} placeholder="Ketik jawaban..." className="mt-2 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 outline-none focus:border-primary" />
         </div>
         {msg && <div className={`mt-3 font-semibold ${msg.startsWith("Léres") ? "text-primary" : "text-destructive"}`}>{msg}</div>}
+        {msg && (
+          <img
+            src={msg.startsWith("Léres") ? sgCheer : sgConfused}
+            alt=""
+            className="mx-auto mt-2 h-32 w-auto"
+          />
+        )}
         <div className="mt-4 flex justify-end gap-2">
           <Btn variant="ghost" onClick={onBack}>Menu</Btn>
           {msg ? <Btn onClick={next}>Selanjutnya</Btn> : <Btn onClick={check}>Cek Jawaban</Btn>}
@@ -533,6 +570,7 @@ function Reading({ onDone, onBack }: { onDone: (score: number, correct: number, 
 function Result({ score, correct, total, level, onAgain, onNext, onMenu }: any) {
   const stars = Math.round((correct / total) * 3);
   const label = stars === 3 ? "Hebat!" : stars === 2 ? "Cukup Baik!" : "Coba Lagi!";
+  const passed = correct / total >= 0.7;
   return (
     <Frame>
       <Panel className="mx-auto mt-12 w-full max-w-2xl p-8">
@@ -551,12 +589,31 @@ function Result({ score, correct, total, level, onAgain, onNext, onMenu }: any) 
             <Row k="Level" v={level} />
           </div>
         </div>
+        <div className={`mt-4 rounded-lg p-3 text-center text-sm font-semibold ${passed ? "bg-primary/15 text-primary" : "bg-destructive/15 text-destructive"}`}>
+          {passed ? <><Trophy className="mr-1 inline h-4 w-4" />Skor memenuhi syarat untuk naik level!</> : "Skor belum cukup. Tetap di level ini, ulangi ya!"}
+        </div>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Btn onClick={onAgain}>Main Lagi</Btn>
-          <Btn variant="soft" onClick={onNext}>Lanjut Level</Btn>
+          <Btn variant="soft" onClick={onNext} disabled={!passed}>Lanjut Level</Btn>
           <Btn variant="ghost" onClick={onMenu}>Menu Utama</Btn>
         </div>
       </Panel>
+    </Frame>
+  );
+}
+
+function FinalCelebration({ onMenu }: { onMenu: () => void }) {
+  return (
+    <Frame title="Selesai">
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <PartyPopper className="h-12 w-12 text-amber-300 drop-shadow" />
+        <h1 className="mt-2 text-6xl font-bold text-amber-100 drop-shadow-lg">WILUJENG!</h1>
+        <p className="mt-3 max-w-md text-lg text-emerald-50 drop-shadow">
+          Kamu telah menyelesaikan permainan ini.
+        </p>
+        <img src={sgWave} alt="" className="my-6 h-64 w-auto rounded-2xl object-cover drop-shadow-xl" />
+        <Btn onClick={onMenu} className="px-10 text-lg"><Home className="mr-2 inline h-5 w-5" />Selesai</Btn>
+      </div>
     </Frame>
   );
 }
