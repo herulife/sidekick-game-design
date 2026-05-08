@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Frame, Panel } from "@/game/Frame";
 import { AKSARA_DASAR, KATA, LEVELS, shuffle } from "@/game/data";
 import { speak, useProgress } from "@/game/store";
 import avatar from "@/assets/sunda-avatar.png";
-import { BookOpen, Music, Volume2, Heart, Star, Lock, RotateCcw, ChevronLeft, ChevronRight, Check, X } from "lucide-react";
+import { BookOpen, Music, Volume2, Heart, Star, Lock, RotateCcw, ChevronLeft, ChevronRight, Check, X, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/")({ component: Game });
 
@@ -18,7 +19,8 @@ type Screen =
   | "writing"
   | "reading"
   | "result"
-  | "progress";
+  | "progress"
+  | "settings";
 
 function Btn({
   children, onClick, variant = "primary", className = "", disabled,
@@ -56,17 +58,24 @@ function Game() {
           onLearn={() => go("levelSelect")}
           onWriting={() => go("writing")}
           onProgress={() => go("progress")}
+          onSettings={() => go("settings")}
           onExit={() => go("splash")}
         />
       )}
       {screen === "levelSelect" && (
         <LevelSelect
           progress={progress}
-          onPick={(lv: number) => { setLevel(lv); go(lv >= 3 ? "reading" : lv === 2 ? "quiz" : "learn"); }}
+          onPick={(lv: number) => { setLevel(lv); go("learn"); }}
           onBack={() => go("menu")}
         />
       )}
-      {screen === "learn" && <Learn level={level} onNext={() => go("quiz")} onBack={() => go("menu")} />}
+      {screen === "learn" && (
+        <Learn
+          level={level}
+          onNext={() => go(level >= 3 ? "reading" : "quiz")}
+          onBack={() => go("levelSelect")}
+        />
+      )}
       {screen === "quiz" && (
         <Quiz
           level={level}
@@ -88,17 +97,50 @@ function Game() {
         />
       )}
       {screen === "writing" && <Writing onBack={() => go("menu")} />}
-      {screen === "reading" && <Reading onDone={() => go("menu")} onBack={() => go("menu")} />}
+      {screen === "reading" && (
+        <Reading
+          onDone={(score, correct, total) => {
+            setProgress((p) => ({
+              ...p,
+              totalScore: p.totalScore + score,
+              totalPlays: p.totalPlays + 1,
+              highestLevel: Math.max(p.highestLevel, level + (correct / total >= 0.7 ? 1 : 0)),
+              history: [
+                { date: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }), level, score },
+                ...p.history,
+              ].slice(0, 8),
+            }));
+            setLastResult({ score, correct, total });
+            go("result");
+          }}
+          onBack={() => go("menu")}
+        />
+      )}
       {screen === "result" && (
         <Result
           {...lastResult!}
           level={level}
-          onAgain={() => go("quiz")}
-          onNext={() => { setLevel((l) => Math.min(4, l + 1)); go("quiz"); }}
+          onAgain={() => go(level >= 3 ? "reading" : "quiz")}
+          onNext={() => {
+            const nl = Math.min(4, level + 1);
+            setLevel(nl);
+            go(nl >= 3 ? "reading" : "quiz");
+          }}
           onMenu={() => go("menu")}
         />
       )}
       {screen === "progress" && <ProgressScreen progress={progress} onBack={() => go("menu")} />}
+      {screen === "settings" && (
+        <Settings
+          progress={progress}
+          onSave={(name) => { setProgress({ name }); toast.success("Pengaturan disimpan"); }}
+          onReset={() => {
+            setProgress(() => ({ name: progress.name, totalScore: 0, highestLevel: 1, totalPlays: 0, history: [] }));
+            toast.success("Progres direset");
+          }}
+          onBack={() => go("menu")}
+        />
+      )}
     </>
   );
 }
@@ -106,6 +148,16 @@ function Game() {
 // ---- Screens ----
 
 function Splash({ onStart }: { onStart: () => void }) {
+  const [showHelp, setShowHelp] = useState(false);
+  const [music, setMusic] = useState(false);
+  const toggleMusic = () => {
+    setMusic((m) => {
+      const nm = !m;
+      toast(nm ? "Musik dinyalakan" : "Musik dimatikan");
+      if (nm) speak("Wilujeng sumping di Sunda Game");
+      return nm;
+    });
+  };
   return (
     <Frame>
       <div className="flex flex-1 flex-col items-center justify-center text-center">
@@ -115,10 +167,33 @@ function Splash({ onStart }: { onStart: () => void }) {
         <img src={avatar} alt="" width={180} height={180} className="my-6 drop-shadow-xl" />
         <Btn onClick={onStart} className="px-12 text-xl">MULAI</Btn>
         <div className="mt-8 flex gap-3">
-          <Btn variant="ghost" className="text-sm"><BookOpen className="mr-2 inline h-4 w-4" />Petunjuk</Btn>
-          <Btn variant="ghost" className="text-sm"><Music className="mr-2 inline h-4 w-4" />Musik</Btn>
+          <Btn variant="ghost" className="text-sm" onClick={() => setShowHelp(true)}>
+            <BookOpen className="mr-2 inline h-4 w-4" />Petunjuk
+          </Btn>
+          <Btn variant="ghost" className="text-sm" onClick={toggleMusic}>
+            <Music className="mr-2 inline h-4 w-4" />{music ? "Musik: ON" : "Musik: OFF"}
+          </Btn>
         </div>
       </div>
+      {showHelp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setShowHelp(false)}>
+          <Panel className="max-w-lg p-6" >
+            <div onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-2xl font-bold text-primary">Petunjuk Permainan</h3>
+              <ul className="mt-3 space-y-2 text-sm">
+                <li>1. Pilih <b>Mulai Belajar</b> untuk mengenal aksara Sunda.</li>
+                <li>2. Setiap level diakhiri dengan <b>Kuis</b>. Capai 70% benar untuk membuka level berikutnya.</li>
+                <li>3. Kamu memiliki <b>3 nyawa</b> di setiap kuis. Hati-hati menjawab!</li>
+                <li>4. Gunakan <b>Latihan Menulis</b> untuk menebalkan aksara di kanvas.</li>
+                <li>5. Tekan tombol <Volume2 className="inline h-4 w-4" /> untuk mendengar bacaan.</li>
+              </ul>
+              <div className="mt-5 text-right">
+                <Btn onClick={() => setShowHelp(false)}>Tutup</Btn>
+              </div>
+            </div>
+          </Panel>
+        </div>
+      )}
     </Frame>
   );
 }
@@ -144,7 +219,7 @@ function NameScreen({ initial, onContinue }: { initial: string; onContinue: (n: 
   );
 }
 
-function Menu({ progress, onLearn, onWriting, onProgress, onExit }: any) {
+function Menu({ progress, onLearn, onWriting, onProgress, onSettings, onExit }: any) {
   return (
     <Frame>
       <div className="flex justify-between">
@@ -164,7 +239,7 @@ function Menu({ progress, onLearn, onWriting, onProgress, onExit }: any) {
           <Btn onClick={onLearn} className="text-lg">Mulai Belajar</Btn>
           <Btn onClick={onWriting} className="text-lg">Latihan Menulis</Btn>
           <Btn onClick={onProgress} className="text-lg">Lihat Progres</Btn>
-          <Btn variant="ghost" className="text-lg">Pengaturan</Btn>
+          <Btn variant="ghost" className="text-lg" onClick={onSettings}>Pengaturan</Btn>
           <Btn variant="danger" onClick={onExit} className="text-lg">Keluar</Btn>
         </div>
       </div>
@@ -198,6 +273,44 @@ function LevelSelect({ progress, onPick, onBack }: any) {
           })}
         </div>
         <p className="mt-6 text-center text-sm text-muted-foreground">Selesaikan level sebelumnya untuk membuka level berikutnya.</p>
+      </Panel>
+      <div className="mt-4"><Btn variant="ghost" onClick={onBack}><ChevronLeft className="mr-1 inline h-4 w-4" />Kembali</Btn></div>
+    </Frame>
+  );
+}
+
+function Settings({ progress, onSave, onReset, onBack }: { progress: any; onSave: (n: string) => void; onReset: () => void; onBack: () => void }) {
+  const [name, setName] = useState(progress.name);
+  const [confirm, setConfirm] = useState(false);
+  return (
+    <Frame title="Pengaturan">
+      <Panel className="mx-auto mt-6 w-full max-w-2xl p-8">
+        <h2 className="text-2xl font-bold text-primary">Pengaturan</h2>
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="text-sm font-semibold">Nama Pemain</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 outline-none focus:border-primary"
+            />
+            <Btn className="mt-2" onClick={() => name.trim() && onSave(name.trim())}>Simpan Nama</Btn>
+          </div>
+          <div className="border-t border-emerald-950/20 pt-4">
+            <div className="text-sm font-semibold">Reset Progres</div>
+            <p className="text-xs text-muted-foreground">Hapus semua skor, level, dan riwayat. Aksi ini tidak bisa dibatalkan.</p>
+            {!confirm ? (
+              <Btn variant="danger" className="mt-2" onClick={() => setConfirm(true)}>
+                <Trash2 className="mr-1 inline h-4 w-4" />Reset Progres
+              </Btn>
+            ) : (
+              <div className="mt-2 flex gap-2">
+                <Btn variant="danger" onClick={() => { onReset(); setConfirm(false); }}>Ya, Reset</Btn>
+                <Btn variant="ghost" onClick={() => setConfirm(false)}>Batal</Btn>
+              </div>
+            )}
+          </div>
+        </div>
       </Panel>
       <div className="mt-4"><Btn variant="ghost" onClick={onBack}><ChevronLeft className="mr-1 inline h-4 w-4" />Kembali</Btn></div>
     </Frame>
@@ -244,13 +357,15 @@ function Quiz({ level, onDone, onBack }: { level: number; onDone: (score: number
     if (feedback) return;
     const ok = latin === q.latin;
     setFeedback({ ok, answer: q.latin });
-    if (ok) { setScore((s) => s + 10); setCorrect((c) => c + 1); }
-    else setHearts((h) => h - 1);
+    if (ok) { setScore((s) => s + 10); setCorrect((c) => c + 1); toast.success("Léres! Jawaban benar."); }
+    else { setHearts((h) => h - 1); toast.error(`Salah. Jawaban: ${q.latin}`); }
   };
 
   const next = () => {
+    const newHearts = feedback?.ok ? hearts : hearts; // already decremented
+    const gameOver = !feedback?.ok && newHearts <= 0;
     setFeedback(null);
-    if (hearts <= 0 || i + 1 >= total) onDone(score + (feedback?.ok ? 0 : 0), correct, total);
+    if (gameOver || i + 1 >= total) onDone(score, correct, total);
     else setI(i + 1);
   };
 
@@ -357,6 +472,10 @@ function Writing({ onBack }: { onBack: () => void }) {
         <Btn variant="ghost" onClick={() => setPaths([])}><RotateCcw className="mr-1 inline h-4 w-4" />Ulangi</Btn>
         <div className="flex gap-2">
           <Btn variant="ghost" onClick={onBack}>Menu</Btn>
+          <Btn variant="soft" onClick={() => {
+            if (paths.length < 1) { toast.error("Coba tebalkan dulu aksaranya!"); return; }
+            toast.success(`Bagus! Kamu menulis "${a.latin}"`);
+          }}><Check className="mr-1 inline h-4 w-4" />Selesai</Btn>
           <Btn onClick={() => { setPaths([]); setI((i + 1) % list.length); }}>Selanjutnya</Btn>
         </div>
       </div>
@@ -364,18 +483,28 @@ function Writing({ onBack }: { onBack: () => void }) {
   );
 }
 
-function Reading({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
+function Reading({ onDone, onBack }: { onDone: (score: number, correct: number, total: number) => void; onBack: () => void }) {
   const [i, setI] = useState(0);
   const [ans, setAns] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const [score, setScore] = useState(0);
+  const [correct, setCorrect] = useState(0);
   const k = KATA[i];
   const check = () => {
     const ok = ans.trim().toLowerCase() === k.latin.toLowerCase();
-    setMsg(ok ? "Léres! Jawaban benar." : `Salah. Jawaban: ${k.latin}`);
+    if (ok) {
+      setScore((s) => s + 10);
+      setCorrect((c) => c + 1);
+      toast.success("Léres! Jawaban benar.");
+      setMsg("Léres! Jawaban benar.");
+    } else {
+      toast.error(`Salah. Jawaban: ${k.latin}`);
+      setMsg(`Salah. Jawaban: ${k.latin}`);
+    }
   };
   const next = () => {
     setAns(""); setMsg(null);
-    if (i + 1 >= KATA.length) onDone(); else setI(i + 1);
+    if (i + 1 >= KATA.length) onDone(score, correct, KATA.length); else setI(i + 1);
   };
   return (
     <Frame title="Membaca Kata">
