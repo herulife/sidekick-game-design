@@ -5,7 +5,13 @@ import { Frame, Panel } from "@/game/Frame";
 import { AKSARA_DASAR, KATA, LEVELS, shuffle } from "@/game/data";
 import { speak, useProgress } from "@/game/store";
 import avatar from "@/assets/sunda-avatar.png";
-import { BookOpen, Music, Volume2, Heart, Star, Lock, RotateCcw, ChevronLeft, ChevronRight, Check, X, Trash2 } from "lucide-react";
+import sgGreet from "@/assets/sg-greet.jpg";
+import sgHappy from "@/assets/sg-happy.jpg";
+import sgConfused from "@/assets/sg-confused.jpg";
+import sgCheer from "@/assets/sg-cheer.jpg";
+import sgWave from "@/assets/sg-wave.jpg";
+import sgHero from "@/assets/sg-hero.jpg";
+import { BookOpen, Music, Volume2, Heart, Star, Lock, RotateCcw, ChevronLeft, ChevronRight, Check, X, Trash2, Home, Trophy, PartyPopper } from "lucide-react";
 
 export const Route = createFileRoute("/")({ component: Game });
 
@@ -19,6 +25,7 @@ type Screen =
   | "writing"
   | "reading"
   | "result"
+  | "finalCelebration"
   | "progress"
   | "settings";
 
@@ -57,6 +64,7 @@ function Game() {
           progress={progress}
           onLearn={() => go("levelSelect")}
           onWriting={() => go("writing")}
+          onReading={() => go("reading")}
           onProgress={() => go("progress")}
           onSettings={() => go("settings")}
           onExit={() => go("splash")}
@@ -122,12 +130,16 @@ function Game() {
           level={level}
           onAgain={() => go(level >= 3 ? "reading" : "quiz")}
           onNext={() => {
-            const nl = Math.min(4, level + 1);
+            if (level >= 4) { go("finalCelebration"); return; }
+            const nl = level + 1;
             setLevel(nl);
             go(nl >= 3 ? "reading" : "quiz");
           }}
           onMenu={() => go("menu")}
         />
+      )}
+      {screen === "finalCelebration" && (
+        <FinalCelebration onMenu={() => { setLevel(1); go("menu"); }} />
       )}
       {screen === "progress" && <ProgressScreen progress={progress} onBack={() => go("menu")} />}
       {screen === "settings" && (
