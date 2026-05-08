@@ -279,6 +279,44 @@ function LevelSelect({ progress, onPick, onBack }: any) {
   );
 }
 
+function Settings({ progress, onSave, onReset, onBack }: { progress: any; onSave: (n: string) => void; onReset: () => void; onBack: () => void }) {
+  const [name, setName] = useState(progress.name);
+  const [confirm, setConfirm] = useState(false);
+  return (
+    <Frame title="Pengaturan">
+      <Panel className="mx-auto mt-6 w-full max-w-2xl p-8">
+        <h2 className="text-2xl font-bold text-primary">Pengaturan</h2>
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="text-sm font-semibold">Nama Pemain</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 outline-none focus:border-primary"
+            />
+            <Btn className="mt-2" onClick={() => name.trim() && onSave(name.trim())}>Simpan Nama</Btn>
+          </div>
+          <div className="border-t border-emerald-950/20 pt-4">
+            <div className="text-sm font-semibold">Reset Progres</div>
+            <p className="text-xs text-muted-foreground">Hapus semua skor, level, dan riwayat. Aksi ini tidak bisa dibatalkan.</p>
+            {!confirm ? (
+              <Btn variant="danger" className="mt-2" onClick={() => setConfirm(true)}>
+                <Trash2 className="mr-1 inline h-4 w-4" />Reset Progres
+              </Btn>
+            ) : (
+              <div className="mt-2 flex gap-2">
+                <Btn variant="danger" onClick={() => { onReset(); setConfirm(false); }}>Ya, Reset</Btn>
+                <Btn variant="ghost" onClick={() => setConfirm(false)}>Batal</Btn>
+              </div>
+            )}
+          </div>
+        </div>
+      </Panel>
+      <div className="mt-4"><Btn variant="ghost" onClick={onBack}><ChevronLeft className="mr-1 inline h-4 w-4" />Kembali</Btn></div>
+    </Frame>
+  );
+}
+
 function Learn({ level, onNext, onBack }: { level: number; onNext: () => void; onBack: () => void }) {
   const list = AKSARA_DASAR;
   const [i, setI] = useState(0);
