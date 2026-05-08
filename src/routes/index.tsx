@@ -319,13 +319,15 @@ function Quiz({ level, onDone, onBack }: { level: number; onDone: (score: number
     if (feedback) return;
     const ok = latin === q.latin;
     setFeedback({ ok, answer: q.latin });
-    if (ok) { setScore((s) => s + 10); setCorrect((c) => c + 1); }
-    else setHearts((h) => h - 1);
+    if (ok) { setScore((s) => s + 10); setCorrect((c) => c + 1); toast.success("Léres! Jawaban benar."); }
+    else { setHearts((h) => h - 1); toast.error(`Salah. Jawaban: ${q.latin}`); }
   };
 
   const next = () => {
+    const newHearts = feedback?.ok ? hearts : hearts; // already decremented
+    const gameOver = !feedback?.ok && newHearts <= 0;
     setFeedback(null);
-    if (hearts <= 0 || i + 1 >= total) onDone(score + (feedback?.ok ? 0 : 0), correct, total);
+    if (gameOver || i + 1 >= total) onDone(score, correct, total);
     else setI(i + 1);
   };
 
