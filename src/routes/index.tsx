@@ -434,6 +434,10 @@ function Writing({ onBack }: { onBack: () => void }) {
         <Btn variant="ghost" onClick={() => setPaths([])}><RotateCcw className="mr-1 inline h-4 w-4" />Ulangi</Btn>
         <div className="flex gap-2">
           <Btn variant="ghost" onClick={onBack}>Menu</Btn>
+          <Btn variant="soft" onClick={() => {
+            if (paths.length < 1) { toast.error("Coba tebalkan dulu aksaranya!"); return; }
+            toast.success(`Bagus! Kamu menulis "${a.latin}"`);
+          }}><Check className="mr-1 inline h-4 w-4" />Selesai</Btn>
           <Btn onClick={() => { setPaths([]); setI((i + 1) % list.length); }}>Selanjutnya</Btn>
         </div>
       </div>
