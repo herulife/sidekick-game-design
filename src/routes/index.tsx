@@ -176,7 +176,7 @@ function Splash({ onStart }: { onStart: () => void }) {
         <div className="mb-2 text-2xl font-medium text-emerald-50 drop-shadow">Wilujeng Sumping</div>
         <h1 className="text-7xl font-bold tracking-tight text-amber-100 drop-shadow-lg md:text-8xl">SUNDA GAME</h1>
         <p className="mt-3 text-lg text-emerald-50/90 drop-shadow">Sundanese Educational Game</p>
-        <img src={avatar} alt="" width={180} height={180} className="my-6 drop-shadow-xl" />
+        <img src={sgHero} alt="Karakter Sunda" className="my-4 h-64 w-auto rounded-2xl object-cover drop-shadow-xl" />
         <Btn onClick={onStart} className="px-12 text-xl">MULAI</Btn>
         <div className="mt-8 flex gap-3">
           <Btn variant="ghost" className="text-sm" onClick={() => setShowHelp(true)}>
