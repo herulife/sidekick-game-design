@@ -50,11 +50,102 @@ export function useProgress() {
   return [p, update] as const;
 }
 
+let _voicesCache: SpeechSynthesisVoice[] = [];
+let _unlocked = false;
+
+function loadVoices(): Promise<SpeechSynthesisVoice[]> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return resolve([]);
+    const synth = window.speechSynthesis;
+    const v = synth.getVoices();
+    if (v && v.length) {
+      _voicesCache = v;
+      return resolve(v);
+    }
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      _voicesCache = synth.getVoices();
+      resolve(_voicesCache);
+    };
+    synth.onvoiceschanged = finish;
+    // fallback timeout (some Android Chrome never fires the event)
+    setTimeout(finish, 800);
+  });
+}
+
+function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+  if (!voices.length) return null;
+  return (
+    voices.find((v) => /^id(-|_)?ID$/i.test(v.lang)) ||
+    voices.find((v) => /^id\b/i.test(v.lang)) ||
+    voices.find((v) => /^ms\b/i.test(v.lang)) ||
+    voices.find((v) => v.default) ||
+    voices[0]
+  );
+}
+
+/**
+ * Speak text. MUST be called inside a user gesture handler on mobile.
+ * Creates the utterance synchronously to keep the gesture context alive.
+ */
 export function speak(text: string) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  const synth = window.speechSynthesis;
+
+  // Create utterance synchronously (keeps mobile gesture context valid).
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "id-ID";
-  u.rate = 0.85;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
+  u.rate = 0.9;
+  u.pitch = 1;
+  u.volume = 1;
+
+  // Try to attach a voice immediately if cached.
+  const cached = _voicesCache.length ? _voicesCache : synth.getVoices();
+  if (cached.length) {
+    const v = pickVoice(cached);
+    if (v) {
+      u.voice = v;
+      u.lang = v.lang;
+    }
+  }
+
+  // Unlock trick for Android Chrome: speak an empty utterance first time.
+  if (!_unlocked) {
+    _unlocked = true;
+    try {
+      const warm = new SpeechSynthesisUtterance("");
+      warm.volume = 0;
+      synth.speak(warm);
+    } catch {}
+  }
+
+  // Some browsers leave synth in "paused" state; resume defensively.
+  try { synth.resume(); } catch {}
+  try { synth.cancel(); } catch {}
+
+  const doSpeak = () => {
+    try { synth.resume(); } catch {}
+    synth.speak(u);
+  };
+
+  if (!cached.length) {
+    // Voices not ready: load then speak. Safe because utterance was created in gesture.
+    loadVoices().then((vs) => {
+      const v = pickVoice(vs);
+      if (v) {
+        u.voice = v;
+        u.lang = v.lang;
+      }
+      doSpeak();
+    });
+  } else {
+    doSpeak();
+  }
+}
+
+// Pre-warm voices list once on module load (browser only).
+if (typeof window !== "undefined" && "speechSynthesis" in window) {
+  loadVoices();
 }
