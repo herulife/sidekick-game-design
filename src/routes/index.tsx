@@ -65,6 +65,7 @@ function Game() {
           onLearn={() => go("levelSelect")}
           onWriting={() => go("writing")}
           onReading={() => go("reading")}
+          onQuiz={() => { setLevel(progress.highestLevel || 1); go("quiz"); }}
           onProgress={() => go("progress")}
           onSettings={() => go("settings")}
           onExit={() => go("splash")}
@@ -136,6 +137,8 @@ function Game() {
             go(nl >= 3 ? "reading" : "quiz");
           }}
           onMenu={() => go("menu")}
+          onProgress={() => go("progress")}
+          onExit={() => go("splash")}
         />
       )}
       {screen === "finalCelebration" && (
@@ -146,8 +149,11 @@ function Game() {
         <Settings
           progress={progress}
           onSave={(name) => { setProgress({ name }); toast.success("Pengaturan disimpan"); }}
+          onToggleMusic={() => setProgress((p) => ({ ...p, music: !p.music }))}
+          onToggleSfx={() => setProgress((p) => ({ ...p, sfx: !p.sfx }))}
+          onChangeProfile={() => { setProgress({ name: "" }); go("name"); }}
           onReset={() => {
-            setProgress(() => ({ name: progress.name, totalScore: 0, highestLevel: 1, totalPlays: 0, history: [] }));
+            setProgress((p) => ({ ...p, totalScore: 0, highestLevel: 1, totalPlays: 0, history: [] }));
             toast.success("Progres direset");
           }}
           onBack={() => go("menu")}
