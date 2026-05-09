@@ -6,6 +6,8 @@ export type Progress = {
   highestLevel: number;
   totalPlays: number;
   history: { date: string; level: number; score: number }[];
+  music: boolean;
+  sfx: boolean;
 };
 
 const KEY = "sunda-game-progress";
@@ -16,6 +18,8 @@ const initial: Progress = {
   highestLevel: 1,
   totalPlays: 0,
   history: [],
+  music: true,
+  sfx: true,
 };
 
 export function loadProgress(): Progress {
