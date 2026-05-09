@@ -65,6 +65,7 @@ function Game() {
           onLearn={() => go("levelSelect")}
           onWriting={() => go("writing")}
           onReading={() => go("reading")}
+          onQuiz={() => { setLevel(progress.highestLevel || 1); go("quiz"); }}
           onProgress={() => go("progress")}
           onSettings={() => go("settings")}
           onExit={() => go("splash")}
@@ -136,6 +137,8 @@ function Game() {
             go(nl >= 3 ? "reading" : "quiz");
           }}
           onMenu={() => go("menu")}
+          onProgress={() => go("progress")}
+          onExit={() => go("splash")}
         />
       )}
       {screen === "finalCelebration" && (
@@ -146,8 +149,11 @@ function Game() {
         <Settings
           progress={progress}
           onSave={(name) => { setProgress({ name }); toast.success("Pengaturan disimpan"); }}
+          onToggleMusic={() => setProgress((p) => ({ ...p, music: !p.music }))}
+          onToggleSfx={() => setProgress((p) => ({ ...p, sfx: !p.sfx }))}
+          onChangeProfile={() => { setProgress({ name: "" }); go("name"); }}
           onReset={() => {
-            setProgress(() => ({ name: progress.name, totalScore: 0, highestLevel: 1, totalPlays: 0, history: [] }));
+            setProgress((p) => ({ ...p, totalScore: 0, highestLevel: 1, totalPlays: 0, history: [] }));
             toast.success("Progres direset");
           }}
           onBack={() => go("menu")}
@@ -212,30 +218,21 @@ function Splash({ onStart }: { onStart: () => void }) {
 
 function NameScreen({ initial, onContinue }: { initial: string; onContinue: (n: string) => void }) {
   const [n, setN] = useState(initial);
-  const [pw, setPw] = useState("");
   return (
     <Frame>
       <div className="flex flex-1 items-center justify-center">
         <Panel className="w-full max-w-xl p-10 text-center">
           <h2 className="text-3xl font-bold text-foreground">LEBETKEUN NAMI PAMAÉN</h2>
-          <p className="mt-2 text-muted-foreground">Mangga lebetkeun nami sareng kata sandi</p>
+          <p className="mt-2 text-muted-foreground">Mangga lebetkeun nami anjeun</p>
           <input
             value={n}
             onChange={(e) => setN(e.target.value)}
             placeholder="Ketik nami anjeun"
             className="mt-6 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 text-lg outline-none focus:border-primary"
           />
-          <input
-            type="password"
-            value={pw}
-            onChange={(e) => setPw(e.target.value)}
-            placeholder="Ketik kata sandi"
-            className="mt-3 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 text-lg outline-none focus:border-primary"
-          />
           <Btn
             onClick={() => {
               if (!n.trim()) { toast.error("Nami pamaén dibutuhkan"); return; }
-              if (pw.length < 3) { toast.error("Kata sandi minimal 3 karakter"); return; }
               onContinue(n.trim());
             }}
             className="mt-6 w-full text-lg"
@@ -246,7 +243,7 @@ function NameScreen({ initial, onContinue }: { initial: string; onContinue: (n: 
   );
 }
 
-function Menu({ progress, onLearn, onWriting, onReading, onProgress, onSettings, onExit }: any) {
+function Menu({ progress, onLearn, onWriting, onReading, onQuiz, onProgress, onSettings, onExit }: any) {
   return (
     <Frame>
       <div className="flex justify-between">
@@ -263,9 +260,10 @@ function Menu({ progress, onLearn, onWriting, onReading, onProgress, onSettings,
         <h1 className="text-7xl font-bold text-amber-100 drop-shadow-lg">SUNDA GAME</h1>
         <p className="mt-2 text-emerald-50">Sundanese Educational Game</p>
         <div className="mt-10 flex w-full max-w-sm flex-col gap-3">
-          <Btn onClick={onLearn} className="text-lg"><BookOpen className="mr-2 inline h-5 w-5" />Mulai Belajar</Btn>
+          <Btn onClick={onLearn} className="text-lg"><BookOpen className="mr-2 inline h-5 w-5" />Belajar Aksara Sunda</Btn>
           <Btn variant="soft" onClick={onWriting} className="text-lg">Latihan Menulis</Btn>
           <Btn variant="soft" onClick={onReading} className="text-lg"><Volume2 className="mr-2 inline h-5 w-5" />Latihan Membaca</Btn>
+          <Btn variant="soft" onClick={onQuiz} className="text-lg"><Trophy className="mr-2 inline h-5 w-5" />Kuis</Btn>
           <Btn variant="ghost" onClick={onProgress} className="text-lg">Lihat Progres</Btn>
           <Btn variant="ghost" className="text-lg" onClick={onSettings}>Pengaturan</Btn>
           <Btn variant="danger" onClick={onExit} className="text-lg">Keluar</Btn>
@@ -307,7 +305,7 @@ function LevelSelect({ progress, onPick, onBack }: any) {
   );
 }
 
-function Settings({ progress, onSave, onReset, onBack }: { progress: any; onSave: (n: string) => void; onReset: () => void; onBack: () => void }) {
+function Settings({ progress, onSave, onReset, onBack, onToggleMusic, onToggleSfx, onChangeProfile }: { progress: any; onSave: (n: string) => void; onReset: () => void; onBack: () => void; onToggleMusic: () => void; onToggleSfx: () => void; onChangeProfile: () => void }) {
   const [name, setName] = useState(progress.name);
   const [confirm, setConfirm] = useState(false);
   return (
@@ -323,6 +321,21 @@ function Settings({ progress, onSave, onReset, onBack }: { progress: any; onSave
               className="mt-1 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 outline-none focus:border-primary"
             />
             <Btn className="mt-2" onClick={() => name.trim() && onSave(name.trim())}>Simpan Nama</Btn>
+          </div>
+          <div className="border-t border-emerald-950/20 pt-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold"><Music className="h-4 w-4" />Musik</div>
+              <Btn variant={progress.music ? "primary" : "ghost"} onClick={onToggleMusic}>{progress.music ? "ON" : "OFF"}</Btn>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold"><Volume2 className="h-4 w-4" />Efek Suara</div>
+              <Btn variant={progress.sfx ? "primary" : "ghost"} onClick={onToggleSfx}>{progress.sfx ? "ON" : "OFF"}</Btn>
+            </div>
+          </div>
+          <div className="border-t border-emerald-950/20 pt-4">
+            <div className="text-sm font-semibold">Ganti Profil</div>
+            <p className="text-xs text-muted-foreground">Kembali ke halaman input nama untuk berganti pemain.</p>
+            <Btn variant="soft" className="mt-2" onClick={onChangeProfile}>Ganti Profil</Btn>
           </div>
           <div className="border-t border-emerald-950/20 pt-4">
             <div className="text-sm font-semibold">Reset Progres</div>
@@ -567,7 +580,7 @@ function Reading({ onDone, onBack }: { onDone: (score: number, correct: number, 
   );
 }
 
-function Result({ score, correct, total, level, onAgain, onNext, onMenu }: any) {
+function Result({ score, correct, total, level, onAgain, onNext, onMenu, onProgress, onExit }: any) {
   const stars = Math.round((correct / total) * 3);
   const label = stars === 3 ? "Hebat!" : stars === 2 ? "Cukup Baik!" : "Coba Lagi!";
   const passed = correct / total >= 0.7;
@@ -595,7 +608,9 @@ function Result({ score, correct, total, level, onAgain, onNext, onMenu }: any) 
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Btn onClick={onAgain}>Main Lagi</Btn>
           <Btn variant="soft" onClick={onNext} disabled={!passed}>Lanjut Level</Btn>
+          <Btn variant="ghost" onClick={onProgress}>Lihat Progres</Btn>
           <Btn variant="ghost" onClick={onMenu}>Menu Utama</Btn>
+          <Btn variant="danger" onClick={onExit}>Keluar Game</Btn>
         </div>
       </Panel>
     </Frame>
