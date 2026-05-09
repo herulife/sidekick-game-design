@@ -305,7 +305,7 @@ function LevelSelect({ progress, onPick, onBack }: any) {
   );
 }
 
-function Settings({ progress, onSave, onReset, onBack }: { progress: any; onSave: (n: string) => void; onReset: () => void; onBack: () => void }) {
+function Settings({ progress, onSave, onReset, onBack, onToggleMusic, onToggleSfx, onChangeProfile }: { progress: any; onSave: (n: string) => void; onReset: () => void; onBack: () => void; onToggleMusic: () => void; onToggleSfx: () => void; onChangeProfile: () => void }) {
   const [name, setName] = useState(progress.name);
   const [confirm, setConfirm] = useState(false);
   return (
@@ -321,6 +321,21 @@ function Settings({ progress, onSave, onReset, onBack }: { progress: any; onSave
               className="mt-1 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 outline-none focus:border-primary"
             />
             <Btn className="mt-2" onClick={() => name.trim() && onSave(name.trim())}>Simpan Nama</Btn>
+          </div>
+          <div className="border-t border-emerald-950/20 pt-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold"><Music className="h-4 w-4" />Musik</div>
+              <Btn variant={progress.music ? "primary" : "ghost"} onClick={onToggleMusic}>{progress.music ? "ON" : "OFF"}</Btn>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold"><Volume2 className="h-4 w-4" />Efek Suara</div>
+              <Btn variant={progress.sfx ? "primary" : "ghost"} onClick={onToggleSfx}>{progress.sfx ? "ON" : "OFF"}</Btn>
+            </div>
+          </div>
+          <div className="border-t border-emerald-950/20 pt-4">
+            <div className="text-sm font-semibold">Ganti Profil</div>
+            <p className="text-xs text-muted-foreground">Kembali ke halaman input nama untuk berganti pemain.</p>
+            <Btn variant="soft" className="mt-2" onClick={onChangeProfile}>Ganti Profil</Btn>
           </div>
           <div className="border-t border-emerald-950/20 pt-4">
             <div className="text-sm font-semibold">Reset Progres</div>
@@ -565,7 +580,7 @@ function Reading({ onDone, onBack }: { onDone: (score: number, correct: number, 
   );
 }
 
-function Result({ score, correct, total, level, onAgain, onNext, onMenu }: any) {
+function Result({ score, correct, total, level, onAgain, onNext, onMenu, onProgress, onExit }: any) {
   const stars = Math.round((correct / total) * 3);
   const label = stars === 3 ? "Hebat!" : stars === 2 ? "Cukup Baik!" : "Coba Lagi!";
   const passed = correct / total >= 0.7;
@@ -593,7 +608,9 @@ function Result({ score, correct, total, level, onAgain, onNext, onMenu }: any) 
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Btn onClick={onAgain}>Main Lagi</Btn>
           <Btn variant="soft" onClick={onNext} disabled={!passed}>Lanjut Level</Btn>
+          <Btn variant="ghost" onClick={onProgress}>Lihat Progres</Btn>
           <Btn variant="ghost" onClick={onMenu}>Menu Utama</Btn>
+          <Btn variant="danger" onClick={onExit}>Keluar Game</Btn>
         </div>
       </Panel>
     </Frame>
