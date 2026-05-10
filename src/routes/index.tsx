@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Frame, Panel } from "@/game/Frame";
 import { AKSARA_DASAR, KATA, LEVELS, shuffle } from "@/game/data";
 import { speak, useProgress } from "@/game/store";
+import { audio, useAudioState } from "@/game/audio";
 import avatar from "@/assets/sunda-avatar.png";
 import sgGreet from "@/assets/sg-greet.jpg";
 import sgHappy from "@/assets/sg-happy.jpg";
@@ -39,7 +40,8 @@ function Btn({
     danger: "bg-destructive text-destructive-foreground hover:brightness-110 border-2 border-red-950/40",
     soft: "bg-accent text-accent-foreground hover:brightness-105 border-2 border-amber-900/40",
   }[variant];
-  return <button disabled={disabled} onClick={onClick} className={`${base} ${styles} ${className}`}>{children}</button>;
+  const handle = () => { audio.click(); onClick?.(); };
+  return <button disabled={disabled} onClick={handle} className={`${base} ${styles} ${className}`}>{children}</button>;
 }
 
 function Game() {
