@@ -400,8 +400,8 @@ function Quiz({ level, onDone, onBack }: { level: number; onDone: (score: number
     if (feedback) return;
     const ok = latin === q.latin;
     setFeedback({ ok, answer: q.latin });
-    if (ok) { setScore((s) => s + 10); setCorrect((c) => c + 1); toast.success("Léres! Jawaban benar."); }
-    else { setHearts((h) => h - 1); toast.error(`Salah. Jawaban: ${q.latin}`); }
+    if (ok) { setScore((s) => s + 10); setCorrect((c) => c + 1); toast.success("Léres! Jawaban benar."); audio.correct(); }
+    else { setHearts((h) => h - 1); toast.error(`Salah. Jawaban: ${q.latin}`); audio.wrong(); }
   };
 
   const next = () => {
@@ -519,7 +519,8 @@ function Writing({ onBack }: { onBack: () => void }) {
           <Btn variant="ghost" onClick={onBack}>Menu</Btn>
           <Btn variant="soft" onClick={() => {
             if (paths.length < 1) { toast.error("Coba tebalkan dulu aksaranya!"); return; }
-            toast.success(`Bagus! Kamu menulis "${a.latin}"`);
+      toast.success(`Bagus! Kamu menulis "${a.latin}"`);
+      audio.correct();
           }}><Check className="mr-1 inline h-4 w-4" />Selesai</Btn>
           <Btn onClick={() => { setPaths([]); setI((i + 1) % list.length); }}>Selanjutnya</Btn>
         </div>
@@ -541,9 +542,11 @@ function Reading({ onDone, onBack }: { onDone: (score: number, correct: number, 
       setScore((s) => s + 10);
       setCorrect((c) => c + 1);
       toast.success("Léres! Jawaban benar.");
+      audio.correct();
       setMsg("Léres! Jawaban benar.");
     } else {
       toast.error(`Salah. Jawaban: ${k.latin}`);
+      audio.wrong();
       setMsg(`Salah. Jawaban: ${k.latin}`);
     }
   };
