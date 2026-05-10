@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Frame, Panel } from "@/game/Frame";
 import { AKSARA_DASAR, KATA, LEVELS, shuffle } from "@/game/data";
 import { speak, useProgress } from "@/game/store";
+import { audio, useAudioState } from "@/game/audio";
 import avatar from "@/assets/sunda-avatar.png";
 import sgGreet from "@/assets/sg-greet.jpg";
 import sgHappy from "@/assets/sg-happy.jpg";
@@ -39,7 +40,8 @@ function Btn({
     danger: "bg-destructive text-destructive-foreground hover:brightness-110 border-2 border-red-950/40",
     soft: "bg-accent text-accent-foreground hover:brightness-105 border-2 border-amber-900/40",
   }[variant];
-  return <button disabled={disabled} onClick={onClick} className={`${base} ${styles} ${className}`}>{children}</button>;
+  const handle = () => { audio.click(); onClick?.(); };
+  return <button disabled={disabled} onClick={handle} className={`${base} ${styles} ${className}`}>{children}</button>;
 }
 
 function Game() {
@@ -149,8 +151,8 @@ function Game() {
         <Settings
           progress={progress}
           onSave={(name) => { setProgress({ name }); toast.success("Pengaturan disimpan"); }}
-          onToggleMusic={() => setProgress((p) => ({ ...p, music: !p.music }))}
-          onToggleSfx={() => setProgress((p) => ({ ...p, sfx: !p.sfx }))}
+          onToggleMusic={() => { const on = audio.toggleMusic(); setProgress((p) => ({ ...p, music: on })); toast(on ? "Musik dinyalakan" : "Musik dimatikan"); }}
+          onToggleSfx={() => { const on = audio.toggleSfx(); setProgress((p) => ({ ...p, sfx: on })); }}
           onChangeProfile={() => { setProgress({ name: "" }); go("name"); }}
           onReset={() => {
             setProgress((p) => ({ ...p, totalScore: 0, highestLevel: 1, totalPlays: 0, history: [] }));
@@ -447,7 +449,7 @@ function Quiz({ level, onDone, onBack }: { level: number; onDone: (score: number
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3">
           {options.map((o) => (
-            <button key={o.latin} onClick={() => choose(o.latin)} className="rounded-xl border-2 border-emerald-950/40 bg-[var(--paper-deep)] py-4 text-xl font-bold hover:border-primary hover:bg-primary hover:text-primary-foreground">
+            <button key={o.latin} onClick={() => { audio.click(); choose(o.latin); }} className="rounded-xl border-2 border-emerald-950/40 bg-[var(--paper-deep)] py-4 text-xl font-bold hover:border-primary hover:bg-primary hover:text-primary-foreground">
               {o.latin}
             </button>
           ))}
