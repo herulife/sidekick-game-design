@@ -12,13 +12,14 @@ import sgConfused from "@/assets/sg-confused.jpg";
 import sgCheer from "@/assets/sg-cheer.jpg";
 import sgWave from "@/assets/sg-wave.jpg";
 import sgHero from "@/assets/sg-hero.jpg";
-import { BookOpen, Music, Volume2, Heart, Star, Lock, RotateCcw, ChevronLeft, ChevronRight, Check, X, Trash2, Home, Trophy, PartyPopper } from "lucide-react";
+import { BookOpen, Music, Volume2, Heart, Star, Lock, RotateCcw, ChevronLeft, ChevronRight, Check, X, Trash2, Home, Trophy, PartyPopper, Eye, EyeOff, UserPlus, LogIn } from "lucide-react";
 
 export const Route = createFileRoute("/")({ component: Game });
 
 type Screen =
   | "splash"
-  | "name"
+  | "register"
+  | "login"
   | "menu"
   | "levelSelect"
   | "learn"
@@ -55,10 +56,24 @@ function Game() {
   return (
     <>
       {screen === "splash" && <Splash onStart={() => go(progress.name ? "menu" : "name")} />}
-      {screen === "name" && (
-        <NameScreen
-          initial={progress.name}
-          onContinue={(name) => { setProgress({ name }); go("menu"); }}
+      {screen === "register" && (
+        <RegisterScreen
+          onDone={(name, kelas, password) => {
+            setProgress((p) => ({ ...p, name, kelas, password }));
+            toast.success("Akun berhasil dibuat!");
+            go("menu");
+          }}
+          onSwitchLogin={() => go("login")}
+          hasAccount={!!progress.password}
+        />
+      )}
+      {screen === "login" && (
+        <LoginScreen
+          name={progress.name}
+          kelas={progress.kelas}
+          expectedPassword={progress.password}
+          onSuccess={() => go("menu")}
+          onSwitchRegister={() => go("register")}
         />
       )}
       {screen === "menu" && (
