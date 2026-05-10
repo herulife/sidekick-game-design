@@ -55,7 +55,7 @@ function Game() {
 
   return (
     <>
-      {screen === "splash" && <Splash onStart={() => go(progress.name ? "menu" : "name")} />}
+      {screen === "splash" && <Splash onStart={() => go(progress.password ? "login" : "register")} />}
       {screen === "register" && (
         <RegisterScreen
           onDone={(name, kelas, password) => {
