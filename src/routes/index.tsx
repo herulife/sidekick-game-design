@@ -233,27 +233,156 @@ function Splash({ onStart }: { onStart: () => void }) {
   );
 }
 
-function NameScreen({ initial, onContinue }: { initial: string; onContinue: (n: string) => void }) {
-  const [n, setN] = useState(initial);
+const KELAS_LIST = Array.from({ length: 13 }, (_, i) => `10.${i + 1}`);
+
+function RegisterScreen({
+  onDone,
+  onSwitchLogin,
+  hasAccount,
+}: {
+  onDone: (name: string, kelas: string, password: string) => void;
+  onSwitchLogin: () => void;
+  hasAccount: boolean;
+}) {
+  const [name, setName] = useState("");
+  const [kelas, setKelas] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [show, setShow] = useState(false);
+
+  const submit = () => {
+    if (!name.trim()) { toast.error("Nama dibutuhkan"); return; }
+    if (!kelas) { toast.error("Pilih kelas dulu"); return; }
+    if (password.length < 4) { toast.error("Password minimal 4 karakter"); return; }
+    if (password !== confirm) { toast.error("Konfirmasi password tidak cocok"); return; }
+    onDone(name.trim(), kelas, password);
+  };
+
   return (
     <Frame>
       <div className="flex flex-1 items-center justify-center">
-        <Panel className="w-full max-w-xl p-10 text-center">
-          <h2 className="text-3xl font-bold text-foreground">LEBETKEUN NAMI PAMAÉN</h2>
-          <p className="mt-2 text-muted-foreground">Mangga lebetkeun nami anjeun</p>
-          <input
-            value={n}
-            onChange={(e) => setN(e.target.value)}
-            placeholder="Ketik nami anjeun"
-            className="mt-6 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-4 py-3 text-lg outline-none focus:border-primary"
-          />
-          <Btn
-            onClick={() => {
-              if (!n.trim()) { toast.error("Nami pamaén dibutuhkan"); return; }
-              onContinue(n.trim());
-            }}
-            className="mt-6 w-full text-lg"
-          >MULAI</Btn>
+        <Panel className="w-full max-w-xl p-8 text-center">
+          <UserPlus className="mx-auto h-10 w-10 text-primary" />
+          <h2 className="mt-2 text-2xl font-bold text-foreground">DAFTAR AKUN</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Buat akun untuk menyimpan progres belajar.</p>
+
+          <div className="mt-5 space-y-3 text-left">
+            <div>
+              <label className="text-xs font-semibold">Nama</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Nama lengkap"
+                className="mt-1 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-3 py-2 outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold">Kelas</label>
+              <select
+                value={kelas}
+                onChange={(e) => setKelas(e.target.value)}
+                className="mt-1 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-3 py-2 outline-none focus:border-primary"
+              >
+                <option value="">-- Pilih kelas --</option>
+                {KELAS_LIST.map((k) => <option key={k} value={k}>Kelas {k}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold">Password</label>
+              <div className="relative mt-1">
+                <input
+                  type={show ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 4 karakter"
+                  className="w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-3 py-2 pr-10 outline-none focus:border-primary"
+                />
+                <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold">Konfirmasi Password</label>
+              <input
+                type={show ? "text" : "password"}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                placeholder="Ulangi password"
+                className="mt-1 w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-3 py-2 outline-none focus:border-primary"
+              />
+            </div>
+          </div>
+
+          <Btn onClick={submit} className="mt-5 w-full text-lg">DAFTAR</Btn>
+          {hasAccount && (
+            <button onClick={() => { audio.click(); onSwitchLogin(); }} className="mt-3 text-sm text-primary underline">
+              Sudah punya akun? Masuk
+            </button>
+          )}
+        </Panel>
+      </div>
+    </Frame>
+  );
+}
+
+function LoginScreen({
+  name,
+  kelas,
+  expectedPassword,
+  onSuccess,
+  onSwitchRegister,
+}: {
+  name: string;
+  kelas: string;
+  expectedPassword: string;
+  onSuccess: () => void;
+  onSwitchRegister: () => void;
+}) {
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
+
+  const submit = () => {
+    if (password !== expectedPassword) {
+      toast.error("Password salah");
+      audio.wrong();
+      return;
+    }
+    audio.correct();
+    toast.success(`Wilujeng sumping, ${name}!`);
+    onSuccess();
+  };
+
+  return (
+    <Frame>
+      <div className="flex flex-1 items-center justify-center">
+        <Panel className="w-full max-w-xl p-8 text-center">
+          <LogIn className="mx-auto h-10 w-10 text-primary" />
+          <h2 className="mt-2 text-2xl font-bold text-foreground">MASUK</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Halo, <b>{name}</b>{kelas ? ` — Kelas ${kelas}` : ""}</p>
+
+          <div className="mt-5 text-left">
+            <label className="text-xs font-semibold">Password</label>
+            <div className="relative mt-1">
+              <input
+                type={show ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+                placeholder="Masukkan password"
+                className="w-full rounded-lg border-2 border-emerald-950/40 bg-white/70 px-3 py-2 pr-10 outline-none focus:border-primary"
+                autoFocus
+              />
+              <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <Btn onClick={submit} className="mt-5 w-full text-lg">MASUK</Btn>
+          <button onClick={() => { audio.click(); onSwitchRegister(); }} className="mt-3 text-sm text-primary underline">
+            Daftar akun baru
+          </button>
         </Panel>
       </div>
     </Frame>
