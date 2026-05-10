@@ -395,7 +395,7 @@ function Menu({ progress, onLearn, onWriting, onReading, onQuiz, onProgress, onS
       <div className="flex justify-between">
         <Panel className="flex items-center gap-3 px-3 py-2">
           <img src={avatar} alt="" width={40} height={40} className="rounded-full bg-amber-100" />
-          <span className="pr-3 font-semibold">Halo, {progress.name}!</span>
+          <span className="pr-3 font-semibold">Halo, {progress.name}!{progress.kelas ? ` (${progress.kelas})` : ""}</span>
         </Panel>
         <div className="flex gap-2">
           <Panel className="flex items-center gap-2 px-4 py-2"><Star className="h-4 w-4 text-amber-500" /><div className="text-xs">Level<div className="font-bold">{progress.highestLevel}</div></div></Panel>
