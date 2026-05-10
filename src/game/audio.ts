@@ -80,7 +80,7 @@ export const audio = {
   click() { ensure(); playOne(clickEl); },
   correct() { ensure(); playOne(correctEl); },
   wrong() { ensure(); playOne(wrongEl); },
-  subscribe(fn: () => void) { listeners.add(fn); return () => listeners.delete(fn); },
+  subscribe(fn: () => void) { listeners.add(fn); return () => { listeners.delete(fn); }; },
 };
 
 export function useAudioState() {
