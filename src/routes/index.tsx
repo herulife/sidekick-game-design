@@ -449,7 +449,7 @@ function Quiz({ level, onDone, onBack }: { level: number; onDone: (score: number
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3">
           {options.map((o) => (
-            <button key={o.latin} onClick={() => choose(o.latin)} className="rounded-xl border-2 border-emerald-950/40 bg-[var(--paper-deep)] py-4 text-xl font-bold hover:border-primary hover:bg-primary hover:text-primary-foreground">
+            <button key={o.latin} onClick={() => { audio.click(); choose(o.latin); }} className="rounded-xl border-2 border-emerald-950/40 bg-[var(--paper-deep)] py-4 text-xl font-bold hover:border-primary hover:bg-primary hover:text-primary-foreground">
               {o.latin}
             </button>
           ))}
