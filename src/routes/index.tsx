@@ -168,7 +168,7 @@ function Game() {
           onSave={(name) => { setProgress({ name }); toast.success("Pengaturan disimpan"); }}
           onToggleMusic={() => { const on = audio.toggleMusic(); setProgress((p) => ({ ...p, music: on })); toast(on ? "Musik dinyalakan" : "Musik dimatikan"); }}
           onToggleSfx={() => { const on = audio.toggleSfx(); setProgress((p) => ({ ...p, sfx: on })); }}
-          onChangeProfile={() => { setProgress({ name: "" }); go("name"); }}
+          onChangeProfile={() => { setProgress({ name: "", kelas: "", password: "" }); go("register"); }}
           onReset={() => {
             setProgress((p) => ({ ...p, totalScore: 0, highestLevel: 1, totalPlays: 0, history: [] }));
             toast.success("Progres direset");
