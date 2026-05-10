@@ -85,6 +85,9 @@ export const audio = {
 
 export function useAudioState() {
   const [, setT] = useState(0);
-  useEffect(() => audio.subscribe(() => setT((x) => x + 1)), []);
+  useEffect(() => {
+    const off = audio.subscribe(() => setT((x) => x + 1));
+    return () => { off; };
+  }, []);
   return { music: audio.isMusicOn(), sfx: audio.isSfxOn() };
 }
