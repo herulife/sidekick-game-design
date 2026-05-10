@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 export type Progress = {
   name: string;
+  kelas: string;
+  password: string;
   totalScore: number;
   highestLevel: number;
   totalPlays: number;
@@ -14,6 +16,8 @@ const KEY = "sunda-game-progress";
 
 const initial: Progress = {
   name: "",
+  kelas: "",
+  password: "",
   totalScore: 0,
   highestLevel: 1,
   totalPlays: 0,
