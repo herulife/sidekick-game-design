@@ -151,8 +151,8 @@ function Game() {
         <Settings
           progress={progress}
           onSave={(name) => { setProgress({ name }); toast.success("Pengaturan disimpan"); }}
-          onToggleMusic={() => setProgress((p) => ({ ...p, music: !p.music }))}
-          onToggleSfx={() => setProgress((p) => ({ ...p, sfx: !p.sfx }))}
+          onToggleMusic={() => { const on = audio.toggleMusic(); setProgress((p) => ({ ...p, music: on })); toast(on ? "Musik dinyalakan" : "Musik dimatikan"); }}
+          onToggleSfx={() => { const on = audio.toggleSfx(); setProgress((p) => ({ ...p, sfx: on })); }}
           onChangeProfile={() => { setProgress({ name: "" }); go("name"); }}
           onReset={() => {
             setProgress((p) => ({ ...p, totalScore: 0, highestLevel: 1, totalPlays: 0, history: [] }));
